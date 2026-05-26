@@ -1,0 +1,39 @@
+models:
+  - name: "Qwen 2.5 32B (Balanced)"
+    provider: "groq"
+    model_id: "qwen/qwen3-32b"
+    params:
+      temperature: 0.3
+  #      max_tokens: 2048
+
+  - name: "GPT oss 20B"
+    provider: "groq"
+    model_id: "openai/gpt-oss-20b"
+    params:
+      temperature: 0.5
+  #      max_tokens: 4096
+
+  - name: "GPT oss 120B"
+    provider: "groq"
+    model_id: "openai/gpt-oss-120b"
+    params:
+      temperature: 0.1
+  #      max_tokens: 1024
+
+  - name: "LLaMa-Guard-4 12B"
+    provider: "groq"
+    model_id: "meta-llama/llama-guard-4-12b"
+    params:
+      temperature: 0.1
+#      max_tokens: 1024
+
+  - name: "LLaMa 3.3 70B"
+    provider: "groq"
+    model_id: "llama-3.3-70b-versatile"
+    params:
+      temperature: 0.5
+#      max_tokens: 1024
+
+defaults:
+  main_llm: "Qwen 2.5 32B (Balanced)"
+  rewriter_llm: "GPT oss 20B"
