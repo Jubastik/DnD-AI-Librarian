@@ -1,5 +1,5 @@
 groq==0.37.1
-python-dotenv==1.2.1
+python-dotenv==1.2.2
 pyyaml==6.0.3
 qdrant-client==1.16.2
 sentence-transformers==5.2.0
