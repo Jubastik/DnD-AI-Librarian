@@ -1,6 +1,7 @@
 from typing import List, Generator, Optional
 from src.vector.qdrant.qdrant_engine import QdrantEngine
 from src.llm.interfaces import BaseLLM
+from loguru import logger
 
 DEFAULT_SYSTEM_PROMPT_TEMPLATE = """
 Ты — Мастер Подземелий. Отвечай только на основе контекста, не выдумывай ничего сам.
@@ -64,7 +65,7 @@ class DndRagService:
         search_query = query
         if chat_history:
             search_query = self._rewrite_query(query, chat_history)
-        print(search_query)
+        logger.info(f"🔎 Поисковый запрос: {search_query}")
 
         results = self.engine.find(search_query, limit=5)
 

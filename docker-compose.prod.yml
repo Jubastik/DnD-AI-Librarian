@@ -1,0 +1,7 @@
+services:
+  dnd-assistant:
+    image: jubastik/dnd-ai-librarian:latest
+    ports:
+      - "8501:8501"
+    environment:
+      - GROQ_API_KEY="key"

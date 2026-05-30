@@ -3,6 +3,8 @@ import os
 import yaml
 from typing import Dict, Any
 from dotenv import load_dotenv
+from loguru import logger
+from streamlit_feedback import streamlit_feedback
 
 from src.core.config import settings
 from src.vector.embedders import DenseMultilingualE5SmallSparseBm25Embeder
@@ -51,7 +53,17 @@ def create_llm_instance(model_config: Dict[str, Any]):
     params = model_config.get("params", {})
 
     if provider == "groq":
-        api_key = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY")
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            try:
+                api_key = st.secrets.get("GROQ_API_KEY")
+            except Exception:
+                pass
+        
+        if not api_key:
+            st.error("GROQ_API_KEY не найден в переменных окружения или secrets!")
+            st.stop()
+            
         return GroqLLM(model_name=model_id, api_key=api_key, **params)
     else:
         raise ValueError(f"Неизвестный провайдер: {provider}")
@@ -63,13 +75,13 @@ def get_engine():
     Создает и собирает все компоненты системы в единый сервис.
     """
     try:
-        print("🛠 Инициализация Embedder...")
+        logger.info("🛠 Инициализация Embedder...")
         embedder = DenseMultilingualE5SmallSparseBm25Embeder()
 
-        # print("⚖️ Инициализация Reranker...")
+        # logger.info("⚖️ Инициализация Reranker...")
         # reranker = Reranker(model_name="BAAI/bge-reranker-v2-m3")
 
-        print("🗄 Подключение к Qdrant...")
+        logger.info("🗄 Подключение к Qdrant...")
         engine = QdrantEngine(
             collection_name=settings.COLLECTION_NAME,
             db_path=settings.QDRANT_PATH,
@@ -93,12 +105,12 @@ def create_user_service(engine, main_conf, rewriter_conf):
 
 try:
     bd_engine = get_engine()
-    print("✅ Движок бд к работе!")
+    logger.success("✅ Движок бд готов к работе!")
 except Exception:
     st.stop()
 
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/en/8/8e/Dungeons_%26_Dragons_5th_Edition_Logo.svg", width=200)
+    st.image("assets/logo.svg", width=200)
     st.header("Настройки")
 
     model_names = list(MODELS_MAP.keys())
@@ -151,7 +163,7 @@ if "messages" not in st.session_state:
          "content": "Приветствую, искатель приключений! Спрашивай о заклинаниях, монстрах или правилах."}
     ]
 
-for msg in st.session_state.messages:
+for i, msg in enumerate(st.session_state.messages):
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
@@ -159,7 +171,14 @@ for msg in st.session_state.messages:
             with st.expander(f"📜 Источники ({len(msg['sources'])})", expanded=False):
                 for s in msg["sources"]:
                     st.markdown(f"[{s.get('title', 'Источник')}]({s.get('url', 'https://dnd.su/')})")
-                    # st.markdown("---")
+            
+            if i > 0:
+                streamlit_feedback(
+                    feedback_type="thumbs",
+                    optional_text_label="Что пошло не так?",
+                    align="flex-start",
+                    key=f"feedback_{i}"
+                )
 
 if prompt := st.chat_input("Например: Как работает скрытая атака плута?"):
 
@@ -226,7 +245,13 @@ if prompt := st.chat_input("Например: Как работает скрыт
                 with st.expander(f"📜 Источники ({len(sources)})", expanded=False):
                     for s in sources:
                         st.markdown(f"[{s.get('title', 'Источник')}]({s.get('url', 'https://dnd.su/')})")
-                        # st.markdown("---")
+                        
+            streamlit_feedback(
+                feedback_type="thumbs",
+                optional_text_label="Что пошло не так?",
+                align="flex-start",
+                key=f"feedback_{len(st.session_state.messages)}"
+            )
 
         except ModelRateLimitError as e:
             reasoning_expander.update(label="❌ Ошибка генерации", state="error", expanded=False)
