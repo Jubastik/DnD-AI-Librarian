@@ -4,7 +4,7 @@ pyyaml==6.0.3
 qdrant-client==1.16.2
 sentence-transformers==5.2.0
 fastembed==0.7.4
-torch==2.9.1
+torch==2.12.0
 torchvision
 langchain-text-splitters==1.1.0
 tqdm==4.67.1
